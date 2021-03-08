@@ -1,5 +1,5 @@
 import pygame as pg
-from vile import Vile, number_of_vile_counter
+from vile import Vile, colorselector
 from settings import *
 import os
 import operator
@@ -7,11 +7,12 @@ import operator
 
 class Water_sort(pg.sprite.Sprite):
 
-    def __init__(self, numberofviles):
+    def __init__(self, numberofvilescounter, display):
         pg.sprite.Sprite.__init__(self)
-        self.numberofviles = numberofviles
+        self.numberofvilesocunter = numberofvilescounter
+        self.numberofviles = self.numberofvilesocunter.counter
         self.vilesarray = []
-        for i in range(numberofviles):
+        for i in range(self.numberofviles):
             self.vilesarray.append(Vile())
 
         self.colordict = {
@@ -27,6 +28,7 @@ class Water_sort(pg.sprite.Sprite):
             9: "neon_green",
             10: "yellow"
         }
+        self.colorselector = colorselector(self.colordict, display)
 
     def vile_render(self, vilecounter, display):
         (gapx, gapy) = (0,0)
@@ -35,28 +37,41 @@ class Water_sort(pg.sprite.Sprite):
         temp_number_of_viles_in_a_row = self.numberofviles
         row = 1
         image = self.vilesarray[0].img
-        print((width - 2 * buffer) % (image.get_width()*temp_number_of_viles_in_a_row) // temp_number_of_viles_in_a_row - 1\
-                > 30 * (temp_number_of_viles_in_a_row - 1))
-        while (width - 2 * buffer) % (image.get_width()*temp_number_of_viles_in_a_row) // temp_number_of_viles_in_a_row - 1\
-                > 30 * (temp_number_of_viles_in_a_row - 1):
-            temp_number_of_viles_in_a_row //= 2
-            row += 1
+        print(buffer + gapx * temp_number_of_viles_in_a_row + temp_number_of_viles_in_a_row * self.vilesarray[0].img.get_width())
 
         gapx = (width - 2 * buffer) % (image.get_width() * temp_number_of_viles_in_a_row) // (
                 temp_number_of_viles_in_a_row - 1)
+
         gapy = (height - 2 * height_buffer) % (image.get_height() * row) // row
-        print(row)
-        for y in range(row):
-            for x in range(temp_number_of_viles_in_a_row):
 
-                self.vilesarray[(y+1) * temp_number_of_viles_in_a_row + x].img_rect.x = buffer + gapx * x + x *\
-                                                self.vilesarray[y * temp_number_of_viles_in_a_row + x].img.get_width()
-                self.vilesarray[ (y+1) * temp_number_of_viles_in_a_row + x].img_rect.y = height_buffer + gapy * y +\
-                                            y * self.vilesarray[y * temp_number_of_viles_in_a_row + x].img.get_height()
-        if self.numberofviles%2==1 :
-            self.vilesarray[]
+        if buffer + gapx * temp_number_of_viles_in_a_row + temp_number_of_viles_in_a_row *\
+                self.vilesarray[0].img.get_width() > width:
+            temp_number_of_viles_in_a_row = temp_number_of_viles_in_a_row // 2
+            row += 1
+
+        pos = 0
+        temprow = 0
+
+        for x in self.vilesarray:
+
+            if pos % temp_number_of_viles_in_a_row == 0:
+                temprow += 1
+                pos = 0
+
+            x.img_rect.x = buffer + gapx * pos + pos * x.img.get_width()
+            x.img_rect.y = height_buffer + gapy * temprow + temprow * x.img.get_height()
+            pos += 1
 
 
+    def colorselected(self, display):
+        if self.colorselector.showColorchoice() != (0,0,0):
+            color = self.colorselector.showColorchoice()
+            while self.colorselector.isSelected():
+                x, y = pg.mouse.get_pos()
+                pg.draw.rect(display, color, (x, y, 20, 20))
+                for vile in self.vilesarray:
+                    if pg.mouse.get_pressed(3) == (True, False, False) and vile.img.collidepoint(pg.mouse.get_pos()):
+                        vile.addcolor(color)
 
     def add_color_to_vile(self,vile, color):
         for x in range(4):
@@ -129,3 +144,9 @@ class Water_sort(pg.sprite.Sprite):
         for i in self.vilesarray:
             i.img = pg.transform.smoothscale(i.img_clean, i.image_size)
             display.blit(i.img, (i.img_rect.x, i.img_rect.y))
+        self.colorselector.update(self.numberofvilesocunter)
+
+# =======================================================================
+#                                SOLVER
+# =======================================================================
+# how to make the solver i have no idea

@@ -21,8 +21,7 @@ while 1:
         if play:
             if numberofvilescounter.isselected():
                 initialized = True
-                numberofviles = numberofvilescounter.counter
-                game = Water_sort(numberofviles)
+                game = Water_sort(numberofvilescounter, screen)
 
             if initialized:
                 game.update(screen, numberofvilescounter)
