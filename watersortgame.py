@@ -13,31 +13,18 @@ class Water_sort(pg.sprite.Sprite):
         self.numberofviles = self.numberofvilesocunter.counter
         self.vilesarray = []
         for i in range(self.numberofviles):
-            self.vilesarray.append(Vile())
+            self.vilesarray.append(Vile(display))
 
-        self.colordict = {
-            0: "empty",
-            1: "red",
-            2: "cyan",
-            3: "purple",
-            4: "orange",
-            5: "grey",
-            6: "pink",
-            7: "green",
-            8: "blue",
-            9: "neon_green",
-            10: "yellow"
-        }
-        self.colorselector = colorselector(self.colordict, display)
-
-    def vile_render(self, vilecounter, display):
-        (gapx, gapy) = (0,0)
+        self.colordict = colordict
+        self.display = display
+# calculates the positions of the viles
+    def vile_render(self, vilecounter ):
+        (gapx, gapy) = (0, 0)
         buffer = vilecounter.endofselector(1) + 20
         height_buffer = vilecounter.endofselector(2) + 30
         temp_number_of_viles_in_a_row = self.numberofviles
         row = 1
         image = self.vilesarray[0].img
-        print(buffer + gapx * temp_number_of_viles_in_a_row + temp_number_of_viles_in_a_row * self.vilesarray[0].img.get_width())
 
         gapx = (width - 2 * buffer) % (image.get_width() * temp_number_of_viles_in_a_row) // (
                 temp_number_of_viles_in_a_row - 1)
@@ -62,18 +49,25 @@ class Water_sort(pg.sprite.Sprite):
             x.img_rect.y = height_buffer + gapy * temprow + temprow * x.img.get_height()
             pos += 1
 
+# displays the viles on the screen
+# TODO: the reddering of the viles should handeled in the vile class not in the game class
+    def vile_display(self):
+        for i in self.vilesarray:
+            i.update()
 
-    def colorselected(self, display):
+
+# to be worked on
+    def colorselected(self):
         if self.colorselector.showColorchoice() != (0,0,0):
             color = self.colorselector.showColorchoice()
             while self.colorselector.isSelected():
                 x, y = pg.mouse.get_pos()
-                pg.draw.rect(display, color, (x, y, 20, 20))
+                pg.draw.rect(self.display, color, (x, y, 20, 20))
                 for vile in self.vilesarray:
                     if pg.mouse.get_pressed(3) == (True, False, False) and vile.img.collidepoint(pg.mouse.get_pos()):
                         vile.addcolor(color)
-
-    def add_color_to_vile(self,vile, color):
+# not finished
+    def add_color_to_vile(self, vile, color):
         for x in range(4):
             if self.vilesarray[vile, x] == 0:
                 self.vilesarray[vile, x] = color
@@ -81,6 +75,7 @@ class Water_sort(pg.sprite.Sprite):
             if x == 3 and self.vilesarray[vile, x] != 0:
                 print("vile is full")
 
+# checks if the vile is empty or not
 
     def is_empty(self, vile):
         if self.vilesarray[vile, 0] == 0:
@@ -88,6 +83,8 @@ class Water_sort(pg.sprite.Sprite):
         else:
             return False
 
+# checks if the viles is full or not
+# returns boolean
 
     def is_full(self, vile):
         if self.vilesarray[vile, 3] != 0:
@@ -139,13 +136,9 @@ class Water_sort(pg.sprite.Sprite):
                                 break
                     break
 
-    def update(self, display, selector):
-        self.vile_render(selector, display)
-        for i in self.vilesarray:
-            i.img = pg.transform.smoothscale(i.img_clean, i.image_size)
-            display.blit(i.img, (i.img_rect.x, i.img_rect.y))
-        self.colorselector.update(self.numberofvilesocunter)
-
+    def update(self, selector):
+        self.vile_render(selector)
+        self.vile_display()
 # =======================================================================
 #                                SOLVER
 # =======================================================================

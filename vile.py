@@ -21,8 +21,9 @@ from pygame.locals import *
 
 
 class Vile(pg.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, display):
         pg.sprite.Sprite.__init__(self)
+        self.display = display
         self.image_size = 100, 170
         self.img = pg.image.load(os.path.join('images', 'vile.png')).convert_alpha()
         self.img = pg.transform.rotate(self.img, 90)
@@ -30,6 +31,49 @@ class Vile(pg.sprite.Sprite):
         self.img = pg.transform.scale(self.img_clean, self.image_size)
         self.img_rect = self.img.get_rect()
         self.colorarr = [(0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0)]
+        self.selected = False
+        #42
+
+    # thsi function takes a number 1 to 4 as argument and returns
+    # the y values that corresponds to teh array of the vile
+    def vile_seperation_heights(self,pos):
+        if pos == 1:
+            return self.img_rect.y + 3 * 42, self.img_rect.y + self.img.get_height()
+        if pos == 2:
+            return self.img_rect.y + 2 * 42, self.img_rect.y + 3 * 42
+        if pos == 3:
+            return self.img_rect.y + 42, self.img_rect.y + 2 * 42
+        if pos == 4:
+            return self.img_rect.y, self.img_rect.y + 42
+
+
+    def part_of_vile_selected(self):
+        if pg.mouse.get_pressed(3) == (True, False, False) and \
+                self.img_rect.collidepoint(pg.mouse.get_pos()):
+            if pg.mouse.get_pos().y > self.vile_seperation_heights(1)[0]\
+                    and pg.mouse.get_pos() < self.vile_seperation_heights(1)[1]:
+                return 1
+            elif pg.mouse.get_pos().y > self.vile_seperation_heights(2)[0]\
+                    and pg.mouse.get_pos() < self.vile_seperation_heights(2)[1]:
+                return 2
+            elif pg.mouse.get_pos().y > self.vile_seperation_heights(3)[0]\
+                    and pg.mouse.get_pos() < self.vile_seperation_heights(3)[1]:
+                return 3
+            elif pg.mouse.get_pos().y > self.vile_seperation_heights(4)[0]\
+                    and pg.mouse.get_pos() < self.vile_seperation_heights(4)[1]:
+                return 4
+
+# render the lines that seperates the different parts of the viles
+    def vile_seperator(self):
+        pass
+
+#  the isSelected function will highlight the vile that is currently selected
+# will be used when transefering water in diffenent viles
+
+    def IsSelected(self):
+        if pg.mouse.get_pressed(3) == (True, False, False) and \
+                self.img_rect.collidepoint(pg.mouse.get_pos()):
+            self.selected = True
 
     def isEmpty(self):
         if self.colorarr[0] == (0, 0, 0):
@@ -45,6 +89,7 @@ class Vile(pg.sprite.Sprite):
 
     def vile_draw(self, position):
         self.img.rect = position
+        print("x pos", self.img.get_rect())
 
     def addcolor(self, color):
         if self.isFull():
@@ -57,13 +102,24 @@ class Vile(pg.sprite.Sprite):
                     break
                 pos += 1
 
+# TODO: render the seperation lines in the viles
 
+    def update(self, *args, **kwargs):
+        self.img = pg.transform.smoothscale(self.img_clean, self.image_size)
+        self.display.blit(self.img, (self.img_rect.x, self.img_rect.y))
+
+
+# TODO: render the selector
+# TODO: make pop up for color selection
+# TODO: store color the color selected
+# TODO: pass the information to idk yet
 
 class colorselector(pg.sprite.Sprite):
     def __init__(self, dict, display):
-        pg.sprite.Sprite.__init__(self, dict, display)
-        self.image_size = 30, 30
+        pg.sprite.Sprite.__init__(self)
+        self.image_size = 35, 35
         self.colorsamplesize = 20
+        # distance from the other selection buttons
         self.colorsampledistance = 40
         self.display = display
         self.img = pg.image.load(os.path.join('images', 'selector.png')).convert_alpha()
@@ -74,46 +130,65 @@ class colorselector(pg.sprite.Sprite):
         self.selected = False
         self.selectedcolor = 0
         self.teta = 36
+        self.showcolors = False
+        self.close = False
 
     def isSelected(self):
         if pg.mouse.get_pressed(3) == (True, False, False) and \
                 self.img_rect.collidepoint(pg.mouse.get_pos()):
             if not self.selected:
-                self.selected = True
+                self.showcolors = True
+                self.showColorchoice()
                 return True
-            else:
-                self.selected = False
+            if self.selected:
+
+                self.showcolors = False
                 return False
 
+    def exit(self):
+        if pg.mouse.get_pressed(3) == (True, False, False) and \
+                self.img_rect.collidepoint(pg.mouse.get_pos()):
+                self.close = not self.close
+        print(self.close)
+
     # this function shows the different colors you can chose from and returns the value of the color chosen
+    # cant get the colors to stay displayed aka the while loop is not working
+    # this function should return a number for to give to the vile class
     def showColorchoice(self):
-        if self.isSelected():
+        while self.showcolors:
+            self.exit()
             loop = 1
+            print(loop)
+            pg.draw.rect(self.display, (0,0,0), (20, 20, self.colorsamplesize, self.colorsamplesize))
             for color in self.dict:
-                #           we have 10 colors so the angle between the each colors must be 36deg
-                #           figure out the triangle equation for different color placement
-                #           the pos value must be a rectangle value with the width and height
-                #           rect = (x,y,w,h)
-                #           x, y must be calculated but the w and h will remain the same always
+                # we have 10 colors so the angle between the each colors must be 36deg
+                # figure out the triangle equation for different color placement
+                # the pos value must be a rectangle value with the width and height
+                # rect = (x,y,w,h)
+                # x, y must be calculated but the w and h will remain the same always
                 posx = self.img_rect.centerx + cos(self.teta * loop) * self.colorsampledistance
                 posy = self.img_rect.centery + sin(self.teta * loop) * self.colorsampledistance
                 rectangle = pg.draw.rect(self.display, color, (posx, posy, self.colorsamplesize, self.colorsamplesize))
                 loop += 1
-                if pg.mouse.get_pressed(3) == (True, False, False) and \
-                        rectangle.collidepoint(pg.mouse.get_pos()):
-                    return color
-                else:
-                    return (0, 0, 0)
+
+
+# finds the correct position for the render of the selector
+# renders in the wrong posistion need to fix
 
     def selectorpos(self, counter):
         #         will take the position from the vile counter and put its self under the counter
-        self.img_rect.x = counter.x
-        self.img_rect.y = counter.y + counter.get_height() + 50
+        self.img_rect.x = counter.endofselector(1)
+        self.img_rect.y = counter.endofselector(3)
+
+# displays the selector
+
+    def selector_render(self):
+        self.display.blit(self.img,(self.img_rect.x, self.img_rect.y))
 
     def update(self, counter):
         self.selectorpos(counter)
-        self.showColorchoice()
-
+        self.selector_render()
+        self.isSelected()
 
 class number_of_vile_counter(pg.sprite.Sprite):
     def __init__(self):
@@ -149,12 +224,17 @@ class number_of_vile_counter(pg.sprite.Sprite):
 
     def endofselector(self, axis):
         if axis == 1:
-            return self.select.image.get_rect().x + self.select.image.get_width()
+            return self.select.selectrect.x + self.select.image.get_width()
         if axis == 2:
-            return self.select.image.get_rect().y + self.select.image.get_height()
+            return self.select.selectrect.y + self.select.image.get_height()
+        if axis == 3:
+            return self.select.selectrect.y
         else:
             print("invalid argument, has ot be 1 or 2")
             return 0
+
+    def get_height(self):
+        return 40
 
     def setpos(self, pos):
         self.textrect.x, self.textrect.y = pos
