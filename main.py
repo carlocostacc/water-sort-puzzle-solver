@@ -9,8 +9,9 @@ numberofvilescounter = number_of_vile_counter()
 numberofvilescounter.setpos((60, 20))
 color_selection = colorselector(colordict, screen)
 initialized = False
+setupfinished = False
 
-
+# TODO : find a way to get the vile in and out of the setup phase
 
 while 1:
     for event in pg.event.get():
@@ -27,8 +28,8 @@ while 1:
 
             if initialized:
                 game.update(numberofvilescounter)
+                game.first_color_setup()
     pg.display.flip()
 e = "WHENTHERESNOTHINGTOPLAYCODEPYTHON"
-print(len(e))
 # WHEN THERE'S NOTHING TO PLAY, CODE PYTHON
 # FINAL EASTER EGG

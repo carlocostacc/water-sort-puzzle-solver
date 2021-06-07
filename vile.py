@@ -64,8 +64,13 @@ class Vile(pg.sprite.Sprite):
                 return 4
 
 # render the lines that seperates the different parts of the viles
+# the lines have to be rectangle of width 1 because we can not change the alpha value of a line
     def vile_seperator(self):
-        pass
+        line = 1
+        while line < 4:
+            pg.draw.rect(self.display, (0, 0, 0),[self.img_rect.x + int(self.img.get_width()/3),
+                                                  self.vile_seperation_heights(line)[0], self.img.get_width()/2.9, 1])
+            line += 1
 
 #  the isSelected function will highlight the vile that is currently selected
 # will be used when transefering water in diffenent viles
@@ -102,11 +107,32 @@ class Vile(pg.sprite.Sprite):
                     break
                 pos += 1
 
-# TODO: render the seperation lines in the viles
+#TODO : the functions render color pallet should be handeled by the watersort game class
 
-    def update(self, *args, **kwargs):
+# render the colors you can use to set up the initial problem
+    def render_color_palette(self):
+
+        pass
+# lets you add colors to the viles to create the initial conditions of the problem
+
+    def first_color_setup(self):
+        self.render_color_palette()
+        
+        pass
+
+# display the vile and the seperation lines
+    def display_vile(self):
         self.img = pg.transform.smoothscale(self.img_clean, self.image_size)
         self.display.blit(self.img, (self.img_rect.x, self.img_rect.y))
+        self.vile_seperator()
+
+# TODO: render the seperation lines in the viles
+    def update(self, *args, **kwargs):
+        self.display_vile()
+        # TODO : fix this line of code the getrect function returns 0 for x and y
+        # self.img_rect = self.img.get_rect()
+
+
 
 
 # TODO: render the selector
@@ -149,7 +175,6 @@ class colorselector(pg.sprite.Sprite):
         if pg.mouse.get_pressed(3) == (True, False, False) and \
                 self.img_rect.collidepoint(pg.mouse.get_pos()):
                 self.close = not self.close
-        print(self.close)
 
     # this function shows the different colors you can chose from and returns the value of the color chosen
     # cant get the colors to stay displayed aka the while loop is not working

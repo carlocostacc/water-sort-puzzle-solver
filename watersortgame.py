@@ -12,6 +12,9 @@ class Water_sort(pg.sprite.Sprite):
         self.numberofvilesocunter = numberofvilescounter
         self.numberofviles = self.numberofvilesocunter.counter
         self.vilesarray = []
+        self.color_sample_arr = []
+        self.color_selected = 0
+        self.mouse = (0, 0)
         for i in range(self.numberofviles):
             self.vilesarray.append(Vile(display))
 
@@ -50,11 +53,60 @@ class Water_sort(pg.sprite.Sprite):
             pos += 1
 
 # displays the viles on the screen
-# TODO: the reddering of the viles should handeled in the vile class not in the game class
+# TODO: the rendering of the viles should handeled in the vile class not in the game class
     def vile_display(self):
         for i in self.vilesarray:
             i.update()
 
+    # render the colors you can use to set up the initial problem
+    def render_color_palette(self):
+        # take the information in the colorvalue dict and render the diffferent colors under the play button
+        # the rectangles are too long and not enough space between them
+        for color in colorvalues:
+            pg.draw.rect(self.display, colorvalues[color], [(20 * color)*1.5 + 15, 70, 20, 20])
+            if len(self.color_sample_arr) < 12:
+                self.color_sample_arr.append([(20 * color)*1.5 + 15, 70, 20, 20])
+
+
+    # lets you add colors to the viles to create the initial conditions of the problem
+    def mouse_is_touching_the_rect(self, x, y, w, h):
+        mousex, mousey = pg.mouse.get_pos()
+        if x <= mousex <= x + w and y <= mousey <= y + h and pg.mouse.get_pressed(3) == (True, False, False):
+            return True
+        else:
+            return False
+
+
+    def search(self, target, list):
+        for x in range(len(list)):
+            if tuple(list[x]) == target:
+                return x
+
+
+
+    def first_color_setup(self):
+        # must change the while to a while that will determine if the vile are in the setup phase or not
+        # once the colors are displayed find a way to store the color selected
+        self.render_color_palette()
+        cond = False
+        for x in self.color_sample_arr:
+            (xz, y, w, h) = x
+            if self.mouse_is_touching_the_rect(xz, y, w, h):
+                self.color_selected = self.search((xz, y, w, h), self.color_sample_arr)
+                cond = True
+
+        self.display_selected_color(cond)
+        # returns the position of the index of the color from the color dict
+    def display_selected_color(self, condition):
+        if condition:
+            self.mouse_pos()
+
+            pg.draw.rect(self.display, colorvalues[self.color_selected],
+                         [self.mouse[0] - 10, self.mouse[1] - 10, 20, 20])
+
+    def mouse_pos(self):
+        self.mouse = pg.mouse.get_pos()
+        print(self.mouse)
 
 # to be worked on
     def colorselected(self):
@@ -76,9 +128,10 @@ class Water_sort(pg.sprite.Sprite):
                 print("vile is full")
 
 # checks if the vile is empty or not
-
+# TODO : the watergame sort class should ask the vile class to return
+#  a boolean value on weather the vile is empty or not
     def is_empty(self, vile):
-        if self.vilesarray[vile, 0] == 0:
+        if vile.isEmpty():
             return True
         else:
             return False
@@ -87,7 +140,7 @@ class Water_sort(pg.sprite.Sprite):
 # returns boolean
 
     def is_full(self, vile):
-        if self.vilesarray[vile, 3] != 0:
+        if vile.isFull():
             return True
         else:
             return False
@@ -139,6 +192,8 @@ class Water_sort(pg.sprite.Sprite):
     def update(self, selector):
         self.vile_render(selector)
         self.vile_display()
+        self.mouse_pos()
+
 # =======================================================================
 #                                SOLVER
 # =======================================================================
