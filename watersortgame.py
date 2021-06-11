@@ -4,6 +4,12 @@ from settings import *
 import os
 import operator
 
+# TODO : implement a way to remove the rectangle that follows the mouse when the users selects the same color twice
+# TODO : implement a way to end the setup phase (most prob will use a  bool value to determine when to stop rendering
+#  the color pallet
+# TODO : implement an erase tool (function, sprite and cursor)
+
+# the function to add color to the vile should be handeled by the vile class of the game class???
 
 class Water_sort(pg.sprite.Sprite):
 
@@ -13,13 +19,18 @@ class Water_sort(pg.sprite.Sprite):
         self.numberofviles = self.numberofvilesocunter.counter
         self.vilesarray = []
         self.color_sample_arr = []
+        self.color_cursor = False
         self.color_selected = 0
         self.mouse = (0, 0)
+        self.eraser_img = pg.image.load(os.path.join('images', 'eraser.png')).convert_alpha()
+        self.eraser_img_clean = self.eraser_img
+        self.eraser_rect = self.eraser_img.get_rect()
         for i in range(self.numberofviles):
             self.vilesarray.append(Vile(display))
 
         self.colordict = colordict
         self.display = display
+
 # calculates the positions of the viles
     def vile_render(self, vilecounter ):
         (gapx, gapy) = (0, 0)
@@ -58,6 +69,17 @@ class Water_sort(pg.sprite.Sprite):
         for i in self.vilesarray:
             i.update()
 
+    # checks if at least two viles are empty
+    def is_problem_solvable(self):
+        counter = 0
+        for x in self.vilesarray:
+            if x.isEmpty(): counter += 1
+        if counter == 2:
+            return True
+        else:
+            print("there needs to be at least 2 empty viles")
+            return False
+
     # render the colors you can use to set up the initial problem
     def render_color_palette(self):
         # take the information in the colorvalue dict and render the diffferent colors under the play button
@@ -67,7 +89,6 @@ class Water_sort(pg.sprite.Sprite):
             if len(self.color_sample_arr) < 12:
                 self.color_sample_arr.append([(20 * color)*1.5 + 15, 70, 20, 20])
 
-
     # lets you add colors to the viles to create the initial conditions of the problem
     def mouse_is_touching_the_rect(self, x, y, w, h):
         mousex, mousey = pg.mouse.get_pos()
@@ -76,6 +97,31 @@ class Water_sort(pg.sprite.Sprite):
         else:
             return False
 
+    # erases the last color of the vile
+    # 1st figure out what vile is selected
+    def eraser(self):
+        for y in self.vilesarray:
+            if y.img_rect.collidepoint(pg.mouse.get_pos()) and pg.mouse.get_pressed(3) == (True, False, False):
+                y.erase()
+
+# render eraser right next to the color palette
+# find the position fo the last color put the eraser tool after
+    def render_eraser(self):
+        self.eraser_img = pg.transform.smoothscale(self.eraser_img_clean, (20, 20))
+        max = 0
+        for x in self.color_sample_arr:
+            if x[0] > max:
+                max = x[0]
+
+        self.display.blit(self.eraser_img, (max + 30, 70))
+
+# when the eraser tool is selected turn the cursor into an eraser
+    def change_cursor_to_eraser(self):
+        #pg.mouse.set_cursor(*self.cursor_dict[name])
+        #template = "{} - Current cursor: {}"
+        #pg.display.set_caption(template.format(CAPTION, name.capitalize()))
+        #return name
+        pass
 
     def search(self, target, list):
         for x in range(len(list)):
@@ -88,17 +134,17 @@ class Water_sort(pg.sprite.Sprite):
         # must change the while to a while that will determine if the vile are in the setup phase or not
         # once the colors are displayed find a way to store the color selected
         self.render_color_palette()
-        cond = False
         for x in self.color_sample_arr:
             (xz, y, w, h) = x
             if self.mouse_is_touching_the_rect(xz, y, w, h):
                 self.color_selected = self.search((xz, y, w, h), self.color_sample_arr)
-                cond = True
+                self.color_cursor = True
 
-        self.display_selected_color(cond)
+        self.display_selected_color(self.color_cursor)
         # returns the position of the index of the color from the color dict
+
     def display_selected_color(self, condition):
-        if condition:
+        if self.color_cursor:
             self.mouse_pos()
 
             pg.draw.rect(self.display, colorvalues[self.color_selected],
@@ -106,7 +152,6 @@ class Water_sort(pg.sprite.Sprite):
 
     def mouse_pos(self):
         self.mouse = pg.mouse.get_pos()
-        print(self.mouse)
 
 # to be worked on
     def colorselected(self):
@@ -118,14 +163,14 @@ class Water_sort(pg.sprite.Sprite):
                 for vile in self.vilesarray:
                     if pg.mouse.get_pressed(3) == (True, False, False) and vile.img.collidepoint(pg.mouse.get_pos()):
                         vile.addcolor(color)
+
 # not finished
-    def add_color_to_vile(self, vile, color):
-        for x in range(4):
-            if self.vilesarray[vile, x] == 0:
-                self.vilesarray[vile, x] = color
-                break
-            if x == 3 and self.vilesarray[vile, x] != 0:
-                print("vile is full")
+
+    def add_color_to_vile(self):
+        for y in self.vilesarray:
+            if y.img_rect.collidepoint(pg.mouse.get_pos()) and pg.mouse.get_pressed(3) == (True, False, False):
+                y.addcolor(self.color_selected)
+
 
 # checks if the vile is empty or not
 # TODO : the watergame sort class should ask the vile class to return
@@ -193,6 +238,8 @@ class Water_sort(pg.sprite.Sprite):
         self.vile_render(selector)
         self.vile_display()
         self.mouse_pos()
+        self.add_color_to_vile()
+        self.render_eraser()
 
 # =======================================================================
 #                                SOLVER

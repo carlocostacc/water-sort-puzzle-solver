@@ -15,7 +15,7 @@ setupfinished = False
 
 while 1:
     for event in pg.event.get():
-        if event.type == pg.QUIT: sys.exit()
+        if event.type == pg.QUIT : sys.exit()
         screen.fill(white)
         numberofvilescounter.update(screen)
         color_selection.update(numberofvilescounter)
@@ -30,6 +30,3 @@ while 1:
                 game.update(numberofvilescounter)
                 game.first_color_setup()
     pg.display.flip()
-e = "WHENTHERESNOTHINGTOPLAYCODEPYTHON"
-# WHEN THERE'S NOTHING TO PLAY, CODE PYTHON
-# FINAL EASTER EGG

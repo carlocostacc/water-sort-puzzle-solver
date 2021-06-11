@@ -14,10 +14,11 @@
 import pygame as pg
 import os
 import operator
+from settings import *
 from math import cos, sin
 from pygame.locals import *
 
-
+# TODO : make the function get_rect function
 
 
 class Vile(pg.sprite.Sprite):
@@ -68,9 +69,28 @@ class Vile(pg.sprite.Sprite):
     def vile_seperator(self):
         line = 1
         while line < 4:
-            pg.draw.rect(self.display, (0, 0, 0),[self.img_rect.x + int(self.img.get_width()/3),
-                                                  self.vile_seperation_heights(line)[0], self.img.get_width()/2.9, 1])
+            pg.draw.rect(self.display, (0, 0, 0), [self.img_rect.x + int(self.img.get_width()/3),
+                                                   self.vile_seperation_heights(line)[0], self.img.get_width()/2.9, 1])
             line += 1
+
+# render the colors stored in the color array
+    def render_water_in_vile(self):
+        pos = 1
+        for x in self.colorarr:
+            if x != (0, 0, 0):
+                if 1 < pos < 4:
+                    pg.draw.rect(self.display, x, [self.img_rect.x + int(self.img.get_width()/3),
+                                 self.vile_seperation_heights(pos)[0], self.img.get_width()/2.9, 41])
+                if pos == 1:
+                    pg.draw.rect(self.display, x, [self.img_rect.x + int(self.img.get_width() / 3),
+                                                   self.vile_seperation_heights(pos)[0], self.img.get_width() / 2.9,
+                                                   39])
+                if pos == 4:
+                    pg.draw.rect(self.display, x, [self.img_rect.x + int(self.img.get_width() / 3),
+                                                   self.vile_seperation_heights(pos)[0] + 6, self.img.get_width() / 2.9,
+                                                   41 - 6])
+            pos += 1
+
 
 #  the isSelected function will highlight the vile that is currently selected
 # will be used when transefering water in diffenent viles
@@ -87,7 +107,7 @@ class Vile(pg.sprite.Sprite):
             return False
 
     def isFull(self):
-        if self.colorarr[3] != 0:
+        if self.colorarr[3] != (0, 0, 0):
             return True
         else:
             return False
@@ -96,14 +116,17 @@ class Vile(pg.sprite.Sprite):
         self.img.rect = position
         print("x pos", self.img.get_rect())
 
+# this function reicives a color and add the color to right location in the vile
     def addcolor(self, color):
+        color_id = colorvalues[color]
         if self.isFull():
             print("cant add color vile is full")
         else:
             pos = 0
             for x in self.colorarr:
                 if x == (0, 0, 0):
-                    self.colorarr[pos] = color
+                    self.colorarr[pos] = color_id
+                    print(self.colorarr)
                     break
                 pos += 1
 
@@ -129,16 +152,15 @@ class Vile(pg.sprite.Sprite):
 # TODO: render the seperation lines in the viles
     def update(self, *args, **kwargs):
         self.display_vile()
-        # TODO : fix this line of code the getrect function returns 0 for x and y
-        # self.img_rect = self.img.get_rect()
+        self.render_water_in_vile()
 
+    def erase(self):
 
+        for x in range(3, -1, -1):
+            if self.colorarr[x] != (0, 0, 0):
+                self.colorarr[x] = (0, 0, 0)
+                break
 
-
-# TODO: render the selector
-# TODO: make pop up for color selection
-# TODO: store color the color selected
-# TODO: pass the information to idk yet
 
 class colorselector(pg.sprite.Sprite):
     def __init__(self, dict, display):
@@ -183,7 +205,6 @@ class colorselector(pg.sprite.Sprite):
         while self.showcolors:
             self.exit()
             loop = 1
-            print(loop)
             pg.draw.rect(self.display, (0,0,0), (20, 20, self.colorsamplesize, self.colorsamplesize))
             for color in self.dict:
                 # we have 10 colors so the angle between the each colors must be 36deg
@@ -292,11 +313,11 @@ class number_of_vile_counter(pg.sprite.Sprite):
             if self.counter > 2:
                 if self.select.selected == False:
                     self.select.selected = True
-                    print(self.select.selected)
+
                     return True
                 else:
                     self.select.selected = False
-                    print(self.select.selected)
+
                     return False
             else:
                 print("have to select more than 2")
